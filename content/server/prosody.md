@@ -325,6 +325,39 @@ To install community modules, you need to first install [Luarocks](https://luaro
 apt install luarocks
 ```
 
+### Authentication using PAM
+
+You can configure Prosody to use the default system authentication. This is useful when you are setting up a system where every registered user should have a chat account.
+
+```sh
+apt install sasl2-bin lua-cyrussasl
+```
+
+Then make the following changes in `/etc/prosody/prosody.cfg.lua`:
+```lua
+authentication = "cyrus"
+cyrus_service_name = "xmpp"
+cyrus_require_provisioning = false
+cyrus_application_name = "prosody"
+cyrus_server_fqdn = "{{<hl>}}example.org{{</hl>}}"
+```
+
+Create and fill out the `/etc/sasl/prosody.conf` file:
+```
+pwcheck_method: saslauthd
+mech_list: PLAIN
+```
+
+Add the following to the end of `/etc/default/saslauthd`:
+```sh
+START=yes
+```
+
+And then enable the `saslauthd` service by running following command:
+```sh
+systemctl enable --now saslauthd
+```
+
 ### Push Notifications
 
 Push notifications are especially useful for iOS devices that require push support to continually receive notifications. Otherwise iOS users would need to keep their XMPP client constantly in the foreground.
@@ -431,6 +464,11 @@ prosodyctl adduser {{<hl>}}admin@example.org{{</hl>}}
 ```
 
 This will prompt you to create a password as well.
+
+Note that if you use authentication via PAM, you can add new user as usual, like this:
+```sh
+adduser {{<hl>}}admin{{</hl>}}
+```
 
 ## Make changes active
 
